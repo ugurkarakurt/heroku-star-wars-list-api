@@ -1,135 +1,102 @@
-const app = require("express")();
-const db = require("./db.json");
+const express = require("express");
 const bodyParser = require("body-parser");
+
+const app = express();
+const db = require("./db.json");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/list", (req, res) => {
-  res.send(200, db);
+app.get("/", (req, res) => {
+  res.status(200).json(db);
 });
 
-app.get("/list/characters", (req, res) => {
-  res.send(200, db.characters);
+app.get("/orders", (req, res) => {
+  res.status(200).json(db.orders);
 });
 
-app.get("/list/characters/:id", (req, res) => {
+app.get("/orders/:id", (req, res) => {
   if (isNaN(req.params.id)) {
-    res.send(400, {
+    res.status(400).json({
       error_code: "not_found_101",
       message: "Invalid parameter.",
     });
   } else {
-    const character = db.characters.find((character) => character.id == req.params.id);
-    if (character) {
-      res.send(200, character);
+    const order = db.orders.find((order) => order.id == req.params.id);
+    if (order) {
+      res.status(200).json(order);
     } else {
-      res.send(404, {
+      res.status(404).json({
         error_code: "not_found_100",
-        message: "Character not found.",
+        message: "Order not found.",
       });
     }
   }
 });
 
-app.get("/list/homeworlds", (req, res) => {
-  res.send(200, db.homeworlds);
+app.post("/orders", (req, res) => {
+  const willSaveData = {
+    id: new Date().getTime(),
+    title: req.body.title,
+    image_url: req.body.image_url,
+    last_update_date: req.body.last_update_date,
+    favorite_count: req.body.favorite_count,
+    urgent: req.body.urgent,
+  };
+
+  if (willSaveData) {
+    db.orders.push(willSaveData);
+    res.status(201).json(willSaveData);
+  } else {
+    res.status(404).json({
+      error_code: "not_found_100",
+      message: "Order not saved.",
+    });
+  }
 });
 
-app.get("/list/homeworlds/:id", (req, res) => {
+app.patch("/orders/:id", (req, res) => {
   if (isNaN(req.params.id)) {
-    res.send(400, {
+    res.status(400).json({
       error_code: "not_found_101",
       message: "Invalid parameter.",
     });
   } else {
-    const homeworld = db.homeworlds.find((homeworld) => homeworld.id == req.params.id);
-    if (homeworld) {
-      res.send(200, homeworld);
-    } else {
-      res.send(404, {
-        error_code: "not_found_100",
-        message: "Homeworld not found.",
-      });
-    }
-  }
-});
-
-app.post("/list/characters", (req, res) => {
-  console.log(req.body.homeworld.toLowerCase());
-  console.log(req);
-  const homeworld = db.homeworlds.find((homeworld) => homeworld.worldname.toLowerCase() == req.body.homeworld.toLowerCase());
-
-  if (homeworld) {
-    const willSaveData = {
-      id: new Date().getTime(),
-      name: req.body.name,
-      height: req.body.height,
-      mass: req.body.mass,
-      hair_color: req.body.hair_color,
-      skin_color: req.body.skin_color,
-      eye_color: req.body.eye_color,
-      birth_year: req.body.birth_year,
-      gender: req.body.gender,
-      homeworld: homeworld.id,
-    };
-
-    db.characters.push(willSaveData);
-    res.send(willSaveData);
-
-  } else {
-    res.send(400, {
-      error_code: "not_found_102",
-      message: "Please enter a valid homeworld."
-    })
-  }
-});
-
-app.patch("/list/characters/:id", (req, res) => {
-  if (isNaN(req.params.id)) {
-    res.send(400, {
-      error_code: "not_found_101",
-      message: "Invalid parameter.",
-    });
-  } else {
-    const character = db.characters.find((character) => character.id == req.params.id);
-    console.log(character);
-    if (character) {
+    const order = db.orders.find((order) => order.id == req.params.id);
+    if (order) {
       Object.keys(req.body).forEach((key) => {
-        character[key] = req.body[key];
+        order[key] = req.body[key];
       });
-      res.send(200, character);
+      res.status(200).json(order);
     } else {
-      res.send(404, {
+      res.status(404).json({
         error_code: "not_found_100",
-        message: "Character not found.",
+        message: "Order not found.",
       });
     }
   }
 });
 
-app.delete("/list/characters/:id", (req, res) => {
+app.delete("/orders/:id", (req, res) => {
   if (isNaN(req.params.id)) {
-    res.send(400, {
-      message: "İşlenemeyen veri..",
+    res.status(400).json({
+      message: "Invalid parameter.",
     });
   } else {
-    const characterIndex = db.characters.findIndex((character) => character.id == req.params.id);
-    if (characterIndex > -1) {
-      db.characters.splice(characterIndex, 1);
-      res.send(201, {
-        error_code: "not_found_101",
-        message: "Invalid parameter.",
-      });
+    const orderIndex = db.orders.findIndex((order) => order.id == req.params.id);
+    if (orderIndex > -1) {
+      db.orders.splice(orderIndex, 1);
+      res.status(204).json();
     } else {
-      res.send(404, {
+      res.status(404).json({
         error_code: "not_found_100",
-        message: "Character not found.",
+        message: "Order not found.",
       });
     }
   }
 });
 
-app.listen(process.env.PORT || "3000", () => {
-  console.log("Sunucu ayaktadır.");
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
