@@ -1,14 +1,16 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-
-const app = express();
+const app = require("express")();
 const db = require("./db.json");
+const bodyParser = require("body-parser");
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/list", (req, res) => {
-  res.status(200).json(db);
+  res.send(200, db);
+});
+
+app.get("/list/characters", (req, res) => {
+  res.send(200, db.characters);
 });
 
 app.get("/list/characters/:id", (req, res) => {
@@ -128,6 +130,6 @@ app.delete("/list/characters/:id", (req, res) => {
   }
 });
 
-app.listen(process.env.PORT || 3000, () => {
+app.listen(process.env.PORT || "3000", () => {
   console.log("Sunucu ayaktadır.");
 });
